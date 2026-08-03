@@ -1,26 +1,50 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* Design tokens. Light + dark are driven by CSS variables so the whole app
+   re-themes from one place; @theme inline exposes them as Tailwind utilities
+   (bg-surface, border-line, text-muted, ...). */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-muted: var(--muted);
+  --color-brand: var(--brand);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+:root {
+  --background: #f6f7f9;
+  --foreground: #0f1720;
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+  --line: #e4e7ec;
+  --muted: #616b7a;
+  --brand: #10b981;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0a0c10;
+    --foreground: #e8eaed;
+    --surface: #14171d;
+    --surface-2: #1b1f27;
+    --line: #262b34;
+    --muted: #8a93a2;
+    --brand: #34d399;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Tabular figures make money columns line up cleanly. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }
