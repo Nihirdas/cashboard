@@ -4,6 +4,7 @@
 
 import type {
   Account,
+  Asset,
   NetWorthPoint,
   Portfolio,
   Position,
@@ -48,6 +49,28 @@ export const demoPositions: Position[] = [
 ];
 
 const BROKERAGE_CASH = 1340.22;
+
+export const demoAssets: Asset[] = [
+  {
+    id: "asset_flat",
+    name: "Apartment — Vienna",
+    kind: "property",
+    currency: CURRENCY,
+    value: 335000,
+    liability: 198000, // outstanding mortgage
+    purchasePrice: 290000,
+    purchaseDate: "2022-05-01",
+    appreciationRate: 0.035,
+  },
+  {
+    id: "asset_pension",
+    name: "Retirement Fund",
+    kind: "pension",
+    currency: CURRENCY,
+    value: 42500,
+    appreciationRate: 0.05,
+  },
+];
 
 // ---------------------------------------------------------------------------
 // Date helpers (runtime-relative so the demo never goes stale).
@@ -147,7 +170,8 @@ export function demoPortfolio(): Portfolio {
 function currentNetWorth(): number {
   const bank = demoAccounts.reduce((s, a) => s + a.balance, 0);
   const invested = demoPositions.reduce((s, p) => s + p.quantity * p.lastPrice, 0);
-  return bank + invested + BROKERAGE_CASH;
+  const assets = demoAssets.reduce((s, a) => s + a.value - (a.liability ?? 0), 0);
+  return bank + invested + BROKERAGE_CASH + assets;
 }
 
 export function demoNetWorthHistory(): NetWorthPoint[] {

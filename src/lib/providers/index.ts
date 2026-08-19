@@ -8,7 +8,8 @@ import { demoBank } from "./bank/demo";
 import { gocardlessBank } from "./bank/gocardless";
 import { demoTrading } from "./trading/demo";
 import { alpacaTrading } from "./trading/alpaca";
-import type { BankProvider, TradingProvider } from "./types";
+import { demoAssetProvider } from "./assets/demo";
+import type { AssetProvider, BankProvider, TradingProvider } from "./types";
 
 export const isDemoMode = process.env.DEMO_MODE !== "false";
 
@@ -18,4 +19,11 @@ export function bankProvider(): BankProvider {
 
 export function tradingProvider(): TradingProvider {
   return isDemoMode ? demoTrading : alpacaTrading();
+}
+
+// Non-bank assets (property, pensions). Until a real source exists these are
+// user-maintained — the demo set, and later the spreadsheet import / manual
+// entry — so this returns the demo provider in both modes for now.
+export function assetsProvider(): AssetProvider {
+  return demoAssetProvider;
 }
