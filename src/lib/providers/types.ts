@@ -66,3 +66,26 @@ export interface TradingProvider {
   readonly name: string;
   getPortfolio(): Promise<Portfolio>;
 }
+
+export type AssetKind = "property" | "pension" | "vehicle" | "other";
+
+export interface Asset {
+  id: string;
+  name: string;
+  kind: AssetKind;
+  currency: string;
+  /** Current estimated market value. */
+  value: number;
+  /** Outstanding loan/mortgage secured against it (0 / omitted if owned outright). */
+  liability?: number;
+  purchasePrice?: number;
+  purchaseDate?: string; // ISO
+  /** Expected annual appreciation, e.g. 0.035 = 3.5%/yr (used by projections). */
+  appreciationRate?: number;
+}
+
+/** A source of non-bank assets — property, pensions, vehicles, etc. */
+export interface AssetProvider {
+  readonly name: string;
+  getAssets(): Promise<Asset[]>;
+}

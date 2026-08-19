@@ -1,4 +1,4 @@
-import { bankProvider, tradingProvider } from "@/lib/providers";
+import { assetsProvider, bankProvider, tradingProvider } from "@/lib/providers";
 import {
   cashTotal,
   incomeThisMonth,
@@ -13,6 +13,7 @@ import { StatCard, StatCardWithDelta } from "@/components/StatCard";
 import { NetWorthChart } from "@/components/NetWorthChart";
 import { CategoryBars } from "@/components/CategoryBars";
 import { Badge, Card, categoryColor } from "@/components/ui";
+import { Composition } from "@/components/Composition";
 
 // Demo data is generated relative to "now", so render per-request to keep the
 // live demo current instead of frozen at build time.
@@ -22,14 +23,15 @@ export default async function OverviewPage() {
   const bank = bankProvider();
   const trading = tradingProvider();
 
-  const [accounts, transactions, portfolio, history] = await Promise.all([
+  const [accounts, transactions, portfolio, history, assets] = await Promise.all([
     bank.getAccounts(),
     bank.getTransactions(),
     trading.getPortfolio(),
     bank.getNetWorthHistory(),
+    assetsProvider().getAssets(),
   ]);
 
-  const nw = netWorth(accounts, portfolio);
+  const nw = netWorth(accounts, portfolio, assets);
   const invested = portfolioValue(portfolio);
   const pl = portfolioPL(portfolio);
   const spend = spendThisMonth(transactions);
@@ -42,6 +44,23 @@ export default async function OverviewPage() {
 
   const accountName = new Map(accounts.map((a) => [a.id, a.name]));
   const recent = transactions.slice(0, 7);
+
+  const propertyEquity = assets
+    .filter((a) => a.kind === "property")
+    .reduce((s, a) => s + a.value - (a.liability ?? 0), 0);
+  const pension = assets
+    .filter((a) => a.kind === "pension")
+    .reduce((s, a) => s + a.value - (a.liability ?? 0), 0);
+  const otherAssets = assets
+    .filter((a) => a.kind !== "property" && a.kind !== "pension")
+    .reduce((s, a) => s + a.value - (a.liability ?? 0), 0);
+  const composition = [
+    { label: "Cash & savings", value: cashTotal(accounts), color: "bg-sky-500" },
+    { label: "Investments", value: invested, color: "bg-emerald-500" },
+    { label: "Property", value: propertyEquity, color: "bg-violet-500" },
+    { label: "Pension", value: pension, color: "bg-amber-500" },
+    { label: "Other", value: otherAssets, color: "bg-rose-500" },
+  ];
 
   return (
     <>
@@ -73,6 +92,11 @@ export default async function OverviewPage() {
           hint={`${formatCurrency(income)} in`}
         />
       </section>
+
+      <Card className="mt-6">
+        <h2 className="mb-4 text-sm font-semibold">What you own</h2>
+        <Composition segments={composition} />
+      </Card>
 
       <Card className="mt-6">
         <div className="mb-2 flex items-center justify-between">

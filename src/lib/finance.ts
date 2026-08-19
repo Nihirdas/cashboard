@@ -4,6 +4,7 @@
 
 import type {
   Account,
+  Asset,
   Portfolio,
   Position,
   Transaction,
@@ -58,8 +59,17 @@ export function debtTotal(accounts: Account[]): number {
     .reduce((s, a) => s + a.balance, 0);
 }
 
-export function netWorth(accounts: Account[], pf: Portfolio): number {
-  return bankTotal(accounts) + portfolioValue(pf);
+/** Equity across non-bank assets: value minus any loan secured against it. */
+export function assetsEquity(assets: Asset[]): number {
+  return assets.reduce((s, a) => s + a.value - (a.liability ?? 0), 0);
+}
+
+export function netWorth(
+  accounts: Account[],
+  pf: Portfolio,
+  assets: Asset[] = [],
+): number {
+  return bankTotal(accounts) + portfolioValue(pf) + assetsEquity(assets);
 }
 
 function isSameMonth(iso: string, ref: Date): boolean {
