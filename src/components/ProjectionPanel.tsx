@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Area,
   CartesianGrid,
@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { project } from "@/lib/projections";
+import type { ProjectionPoint, ProjectionSummary } from "@/lib/projections";
 import { formatCurrency } from "@/lib/format";
 import { StatCard } from "@/components/StatCard";
 import { Card } from "@/components/ui";
@@ -96,37 +96,71 @@ export function ProjectionPanel({
   const [ret, setRet] = useState(6);
   const [years, setYears] = useState(20);
 
-  const data = useMemo(
-    () =>
-      project({
-        startingValue: start,
-        monthlyContribution: monthly,
-        annualReturnPct: ret,
-        years,
-        startYear,
-      }),
-    [start, monthly, ret, years, startYear],
-  );
+  // The projection maths runs behind /api/projections; the panel fetches it
+  // (debounced) whenever an assumption changes, so the numbers on screen come
+  // straight from the API contract the tests exercise.
+  const [points, setPoints] = useState<ProjectionPoint[]>([]);
+  const [summary, setSummary] = useState<ProjectionSummary | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const last = data[data.length - 1];
-  const growth = last.total - last.contributed;
+  useEffect(() => {
+    const query = new URLSearchParams({
+      start: String(start),
+      monthly: String(monthly),
+      return: String(ret),
+      years: String(years),
+      startYear: String(startYear),
+    });
+    const controller = new AbortController();
+
+    const timer = setTimeout(() => {
+      setLoading(true);
+      fetch(`/api/projections?${query}`, { signal: controller.signal })
+        .then((res) => res.json())
+        .then((result: { points: ProjectionPoint[]; summary: ProjectionSummary }) => {
+          setPoints(result.points);
+          setSummary(result.summary);
+          setLoading(false);
+        })
+        .catch((err: unknown) => {
+          if (!(err instanceof DOMException && err.name === "AbortError")) {
+            setLoading(false);
+          }
+        });
+    }, 200);
+
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [start, monthly, ret, years, startYear]);
 
   return (
     <>
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <section
+        className={`grid grid-cols-1 gap-4 transition-opacity sm:grid-cols-3 ${
+          loading ? "opacity-60" : ""
+        }`}
+      >
         <StatCard
-          label={`Projected net worth by ${last.year}`}
-          value={formatCurrency(last.total)}
+          label={`Projected net worth by ${summary?.finalYear ?? startYear + years}`}
+          value={summary ? formatCurrency(summary.total) : "—"}
         />
-        <StatCard label="Total you put in" value={formatCurrency(last.contributed)} />
-        <StatCard label="Growth from returns" value={formatCurrency(growth)} />
+        <StatCard
+          label="Total you put in"
+          value={summary ? formatCurrency(summary.contributed) : "—"}
+        />
+        <StatCard
+          label="Growth from returns"
+          value={summary ? formatCurrency(summary.growth) : "—"}
+        />
       </section>
 
       <Card className="mt-6">
         <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
-              data={data}
+              data={points}
               margin={{ top: 8, right: 8, bottom: 0, left: 8 }}
             >
               <defs>
