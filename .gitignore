@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# private real financial data — NEVER commit (stays local / lives in the user's Drive)
+/.data/
+
 # vercel
 .vercel
 

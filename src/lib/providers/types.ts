@@ -89,3 +89,56 @@ export interface AssetProvider {
   readonly name: string;
   getAssets(): Promise<Asset[]>;
 }
+
+// --- Dividends -------------------------------------------------------------
+
+export interface DividendYear {
+  year: number;
+  dividend: number;
+  cumulativeDividend: number | null;
+  invested: number | null;
+  worth: number | null;
+  returnPct: number | null;
+}
+
+export interface DividendMonth {
+  /** "YYYY-MM". */
+  month: string;
+  dividend: number;
+  cumulativeDividend: number | null;
+  invested: number | null;
+  worth: number | null;
+  monthlyAverage: number | null;
+  returnPct: number | null;
+}
+
+export interface DividendHolding {
+  symbol: string;
+  shares: number | null;
+  invested: number | null;
+  dividendReceived: number | null;
+  exDate: string | null;
+  notes: string | null;
+}
+
+export interface DividendMilestone {
+  year: number;
+  cumulativeDividendTarget: number | null;
+  monthlyDividendTarget: number | null;
+  investedTarget: number | null;
+}
+
+export interface DividendData {
+  currency: string;
+  startDate: string;
+  summary: {
+    totalInvested: number;
+    totalDividend: number;
+    totalWorth: number;
+    monthlyAverage: number;
+  };
+  yearly: DividendYear[];
+  monthly: DividendMonth[];
+  holdings: DividendHolding[];
+  milestones: DividendMilestone[];
+}

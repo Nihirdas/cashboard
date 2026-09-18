@@ -17,6 +17,11 @@ const NAV = [
     icon: "M4 19V5m0 14h16M8 15l3-4 3 2 4-6",
   },
   {
+    href: "/dividends",
+    label: "Dividends",
+    icon: "M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6",
+  },
+  {
     href: "/projections",
     label: "Projections",
     icon: "M3 17l6-6 4 4 7-7M14 8h7v7",
